@@ -114,6 +114,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = '/home/emanuelmene/emanuelmene.pythonanywhere.com/static'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/home/emanuelmene/emanuelmene.pythonanywhere.com/media'
+
 
 
 # Default primary key field type
@@ -121,8 +126,6 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_REDIRECT_URL = '/cursos/painel/'
 
@@ -138,10 +141,6 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_NAME = "site_sessionid"
 # Nome do cookie para sessões do site principal
 SITE_SESSION_COOKIE_NAME = 'site_sessionid'
-
-
-
-
 
 
 JAZZMIN_SETTINGS = {
