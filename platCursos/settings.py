@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -114,11 +115,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/emanuelmene/emanuelmene.pythonanywhere.com/static'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/emanuelmene/emanuelmene.pythonanywhere.com/media'
-
 
 
 # Default primary key field type
@@ -126,6 +122,8 @@ MEDIA_ROOT = '/home/emanuelmene/emanuelmene.pythonanywhere.com/media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_REDIRECT_URL = '/cursos/painel/'
 
@@ -143,6 +141,7 @@ SESSION_COOKIE_NAME = "site_sessionid"
 SITE_SESSION_COOKIE_NAME = 'site_sessionid'
 
 
+
 JAZZMIN_SETTINGS = {
     'site_title': 'Gestor de Cursos',
     'site_name': 'Gestor de Cursos',
@@ -156,3 +155,15 @@ LANGUAGES = [
     ('en', 'English'),
     ('pt-br', 'Português'),
 ]
+
+
+
+DEBUG = config('DEBUG', default=False, cast=bool)
+SECRET_KEY = config('SECRET_KEY', default='default-secret-key')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
+
+# Static and Media files
+STATIC_ROOT = config('STATIC_ROOT', default=BASE_DIR / 'staticfiles')
+MEDIA_ROOT = config('MEDIA_ROOT', default=BASE_DIR / 'mediafiles')
+
+
