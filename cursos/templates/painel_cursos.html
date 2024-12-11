@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Cursos</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'cursos/css/painel_cursos.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Importação do Google Fonts Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+
+
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h2>LOGO</h2>
+        </div>
+        <ul>
+            <li><i class="fas fa-home"></i> <a href="#" id="sidebar-home">Home</a></li>
+            <li><i class="fas fa-book"></i> <a href="#" id="sidebar-my-courses">Meus Cursos</a></li>
+            <li><i class="fas fa-user"></i> <a href="#" id="sidebar-profile">Perfil</a></li>
+            <li><i class="fas fa-sign-out-alt"></i> <a href="http://127.0.0.1:8000/">Sair</a></li>
+        </ul>
+    </div>
+    <div class="main-content">
+        <div class="topbar">
+            <span class="logoTopBar"><h2>LOGO</h2></span>
+            <div class="notifDiv">
+                <div class="notifications">
+                    <i class="fas fa-bell"></i>
+                    {% if notifications.count > 0 %}
+                    <span class="badge">{{ notifications.count }}</span>
+                    {% endif %}
+                    <div class="notification-dropdown">
+                        <ul>
+                            {% for notification in notifications %}
+                            <li>
+                                <p>{{ notification.message }}</p>
+                                <span>{{ notification.created_at }}</span>
+                            </li>
+                            {% empty %}
+                            <li><p>Sem novas notificações</p></li>
+                            {% endfor %}
+                        </ul>
+                        <a href="#" id="markAllRead">
+                            <i class="fas fa-envelope-open"></i> Marcar todas como lidas
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Botão para abrir o perfil -->
+                <div class="user-profile">
+                    <div class="user-info" id="open-profile-btn">
+                        {% if request.user.profile.photo %}
+                        <img src="{{ request.user.profile.photo.url }}" alt="Foto do Usuário" class="user-photo">
+                        {% else %}
+                        <div class="user-avatar">{{ request.user.first_name|default:"U"|slice:":1" }}</div>
+                        {% endif %}
+                        <div class="user-name">
+                            <span>Olá,</span>
+                            <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Barra lateral oculta -->
+        <div id="profile-sidebar" class="profile-sidebar">
+            <div class="profile-header">
+                <h2>Meu Perfil</h2>
+                <span id="close-profile-btn" class="close-btn">&times;</span>
+            </div>
+            <form id="update-profile-form" method="POST" enctype="multipart/form-data">
+                <div class="profile-content">
+                    <div class="profile-picture">
+                        {% if request.user.profile.photo %}
+                        <img src="{{ request.user.profile.photo.url }}" alt="Foto do Usuário">
+                        {% endif %}
+                        <label for="profile-photo">Foto de Perfil</label>
+                        <input type="file" id="profile-photo" name="photo">
+                    </div>
+                    <label for="profile-name">Nome</label>
+                    <input type="text" id="profile-name" name="name" value="{{ request.user.get_full_name }}">
+
+                    <label for="profile-email">Email</label>
+                    <input type="email" id="profile-email" name="email" value="{{ request.user.email }}">
+
+                    <label for="profile-cpf">CPF</label>
+                    <input type="text" id="profile-cpf" name="cpf" value="{{ request.user.profile.cpf|default:'' }}">
+
+
+                    <label for="profile-password">Nova Senha</label>
+                    <input type="password" id="profile-password" name="password">
+
+                    <div class="profile-actions">
+                        <button type="submit">Salvar Alterações</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="courses">
+            <h2>Turmas</h2>
+        <div class="course-container">
+            {% for item in courses_with_status %}
+            <div class="course-card" style="position: relative;"> <!-- Garantir position relativa -->
+                <!-- Selo -->
+                {% if item.tipo_aquisicao == "Comprado" %}
+                    <div class="card-badge">COMPRADO</div>
+                {% elif item.tipo_aquisicao == "Vip" %}
+                    <div class="card-badge">Acesso Vip liberado</div>
+                {% endif %}
+
+                <!-- Conteúdo do card -->
+                <img src="{{ item.curso.capa.url }}" alt="Capa do Curso" class="course-image">
+                <div class="course-content">
+                    <h3>{{ item.curso.nome }}</h3>
+                    <p><i class="fas fa-calendar-alt"></i> {{ item.curso.horario }}</p>
+                    <p><i class="fas fa-map-marker-alt"></i> {{ item.curso.local }}</p>
+                    <p><i class="fas fa-user"></i> {{ item.curso.numero_alunos }} alunos</p>
+                    <div class="tags">
+                        <span>{{ item.curso.codigo }}</span>
+                        <span>{{ item.curso.turma }}</span>
+                        <span>{{ item.curso.semestre }}</span>
+                            {% if item.tipo_aquisicao == "Comprado" %}
+                                <span>Você comprou este curso</span>
+                            {% elif item.tipo_aquisicao == "Vip" %}
+                                <span>Você ganhou este curso</span>
+                            {% elif item.tipo_aquisicao != "Comprado" or "Ganhado" %}
+                                <span class="priceTag">por R$ {{ item.curso.preco }}</span>
+                            {% endif %}
+                    </div>
+                            <!-- Botão de Comprar -->
+                    {% if item.tipo_aquisicao == "Disponível" %}
+                    <div class="buy-section">
+                        <a href="#" class="btn-buy" data-curso-id="{{ item.curso.id }}">
+                            <i class="fas fa-shopping-cart"></i> Comprar
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div id="qr-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center;">
+            <div style="background:#fff; padding:20px; border-radius:10px; text-align:center;">
+                <h3>Escaneie o QR Code para realizar o pagamento</h3>
+                <canvas id="qr-code-img"></canvas>
+                <button onclick="document.getElementById('qr-modal').style.display='none';" style="margin-top:20px; padding:10px 20px; background:#007bff; color:#fff; border:none; border-radius:5px;">Fechar</button>
+            </div>
+        </div>
+
+
+
+
+        <!-- APENAS PARA DAR ESPAÇO NO FUNDO -->
+        <div>
+            <BR>
+            <BR>
+            <BR>
+            <BR>
+            <BR>
+        </div>
+    </div>
+
+    <!-- FOOTERBAR (Visível apenas em dispositivos móveis) -->
+    <div class="footerbar">
+        <ul>
+            <li><a href="#" id="menu-home"><i class="fas fa-home"></i><span>Home</span></a></li>
+            <li><a href="#" id="menu-my-courses"><i class="fas fa-book"></i><span>Meus Cursos</span></a></li>
+            <li><a href="#" id="menu-open-profile"><i class="fas fa-user"></i><span>Perfil</span></a></li>
+            <li><a href="http://127.0.0.1:8000/"><i class="fas fa-sign-out-alt"></i><span>Sair</span></a></li>
+        </ul>
+    </div>
+
+<script>
+    // JavaScript para enviar a requisição POST
+    document.getElementById('markAllRead').addEventListener('click', function(event) {
+        event.preventDefault(); // Evita que o link redirecione
+        fetch("{% url 'cursos:mark_notifications_as_read' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}', // Adiciona o CSRF token
+                'Content-Type': 'application/json'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert(data.message); // Mostra uma mensagem de sucesso
+                location.reload(); // Recarrega a página para atualizar as notificações
+            } else if (data.error) {
+                alert(data.error); // Mostra o erro, se houver
+            }
+        })
+        .catch(error => console.error('Erro:', error));
+    });
+</script>
+<SCRIPT>
+    document.addEventListener("DOMContentLoaded", () => {
+    const openProfileBtn = document.getElementById("open-profile-btn");
+    const closeProfileBtn = document.getElementById("close-profile-btn");
+    const profileSidebar = document.getElementById("profile-sidebar");
+
+    // Abrir barra lateral
+    openProfileBtn.addEventListener("click", () => {
+        profileSidebar.classList.add("open");
+    });
+
+    // Fechar barra lateral
+    closeProfileBtn.addEventListener("click", () => {
+        profileSidebar.classList.remove("open");
+    });
+});
+
+</SCRIPT>
+<script>
+    // Função para abrir a barra lateral
+    document.getElementById('open-profile-btn').addEventListener('click', function () {
+        document.getElementById('profile-sidebar').classList.add('open');
+    });
+
+    // Função para fechar a barra lateral
+    document.getElementById('close-profile-btn').addEventListener('click', function () {
+        document.getElementById('profile-sidebar').classList.remove('open');
+    });
+
+    // Função para enviar a atualização do perfil
+    document.getElementById('update-profile-form').addEventListener('submit', function (event) {
+        event.preventDefault(); // Impede o comportamento padrão do formulário
+
+        const formData = new FormData(this);
+
+        fetch("{% url 'cursos:update_profile' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}', // Adiciona o token CSRF
+            },
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || "Perfil atualizado com sucesso!");
+                location.reload(); // Recarrega a página para refletir as mudanças
+            } else {
+                alert(data.error || "Ocorreu um erro ao processar a solicitação.");
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert("Erro na solicitação. Tente novamente mais tarde.");
+        });
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const sidebarHome = document.getElementById("sidebar-home");
+        const sidebarMyCourses = document.getElementById("sidebar-my-courses");
+        const sidebarProfile = document.getElementById("sidebar-profile");
+        const courseContainer = document.querySelector(".course-container");
+        const profileSidebar = document.getElementById("profile-sidebar");
+        const coursesHeading = document.querySelector(".courses h2"); // Seleciona o <h2>
+
+        // Exibir todos os cursos ao clicar em "Home"
+        sidebarHome.addEventListener("click", (event) => {
+            event.preventDefault(); // Impede o comportamento padrão do link
+
+            // Exibe todos os cursos novamente
+            const courseCards = document.querySelectorAll(".course-card");
+            courseCards.forEach((card) => {
+                card.style.display = "block"; // Mostra todos os cursos
+            });
+
+            // Restaura o título para "Turmas"
+            coursesHeading.textContent = "Turmas";
+
+            // Fechar o perfil, se estiver aberto
+            profileSidebar.classList.remove("open");
+        });
+
+        // Exibir apenas os cursos comprados ou ganhados ao clicar em "Meus Cursos"
+        sidebarMyCourses.addEventListener("click", (event) => {
+            event.preventDefault(); // Impede o comportamento padrão do link
+
+            // Filtra apenas os cursos comprados ou ganhados
+            const courseCards = document.querySelectorAll(".course-card");
+            courseCards.forEach((card) => {
+                const badge = card.querySelector(".card-badge");
+                if (badge && (badge.innerText === "COMPRADO" || badge.innerText === "Acesso Vip liberado")) {
+                    card.style.display = "block"; // Exibe os cursos comprados ou ganhados
+                } else {
+                    card.style.display = "none"; // Esconde outros cursos
+                }
+            });
+
+            // Atualiza o título para "Meus Cursos"
+            coursesHeading.textContent = "Meus Cursos";
+
+            // Fechar o perfil, se estiver aberto
+            profileSidebar.classList.remove("open");
+        });
+
+        // Abrir o perfil ao clicar em "Perfil" sem esconder os cursos
+        sidebarProfile.addEventListener("click", (event) => {
+            event.preventDefault(); // Impede o comportamento padrão do link
+
+            // Abre o perfil sem alterar a visualização dos cursos
+            profileSidebar.classList.add("open");
+        });
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const openProfileBtn = document.getElementById("open-profile-btn");
+        const closeProfileBtn = document.getElementById("close-profile-btn");
+        const profileSidebar = document.getElementById("profile-sidebar");
+        const menuOpenProfile = document.getElementById("menu-open-profile");
+
+
+
+        // Abrir barra lateral pelo botão de perfil
+        openProfileBtn.addEventListener("click", () => {
+            profileSidebar.classList.add("open");
+        });
+
+
+        // Abrir barra lateral pelo menu
+        menuOpenProfile.addEventListener("click", (event) => {
+            event.preventDefault(); // Impede o comportamento padrão do link
+            profileSidebar.classList.add("open");
+        });
+
+
+        // Fechar barra lateral
+        closeProfileBtn.addEventListener("click", () => {
+            profileSidebar.classList.remove("open");
+        });
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const menuHome = document.getElementById("menu-home");
+        const menuMyCourses = document.getElementById("menu-my-courses");
+        const courseContainer = document.querySelector(".course-container");
+        const coursesHeading = document.querySelector(".courses h2"); // Seleciona o <h2>
+
+        // Exibir todos os cursos ao clicar em "Home"
+        menuHome.addEventListener("click", (event) => {
+            event.preventDefault(); // Impede o comportamento padrão do link
+
+            // Exibe todos os cursos novamente
+            const courseCards = document.querySelectorAll(".course-card");
+            courseCards.forEach((card) => {
+                card.style.display = "block"; // Mostra todos os cursos
+            });
+            // Restaura o título para "Turmas"
+            coursesHeading.textContent = "Turmas";
+        });
+
+        // Exibir apenas os cursos comprados ou ganhados ao clicar em "Meus Cursos"
+        menuMyCourses.addEventListener("click", (event) => {
+            event.preventDefault(); // Impede o comportamento padrão do link
+
+            // Filtra apenas os cursos comprados ou ganhados
+            const courseCards = document.querySelectorAll(".course-card");
+            courseCards.forEach((card) => {
+                const badge = card.querySelector(".card-badge");
+                if (badge && (badge.innerText === "COMPRADO" || badge.innerText === "Acesso Vip liberado")) {
+                    card.style.display = "block"; // Exibe os cursos comprados ou ganhados
+                } else {
+                    card.style.display = "none"; // Esconde outros cursos
+                }
+            });
+                        // Atualiza o título para "Meus Cursos"
+            coursesHeading.textContent = "Meus Cursos";
+
+        });
+    });
+</script>
+<script>
+    //CODIGO PARA QR CODE PIX
+    const csrfToken = "{{ csrf_token }}";
+// Código para QR Code PIX
+document.addEventListener("DOMContentLoaded", () => {
+    const buyButtons = document.querySelectorAll(".btn-buy");
+
+    buyButtons.forEach(button => {
+        button.addEventListener("click", async (event) => {
+            event.preventDefault();
+            const cursoId = button.getAttribute("data-curso-id"); // Obtém o ID do curso
+
+            try {
+                // Mostra um spinner enquanto processa o pagamento
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+
+                const response = await fetch(`/cursos/pagamento/${cursoId}/`, {
+                    method: "GET",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}", // Token CSRF para segurança
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro na requisição: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const qrModal = document.getElementById("qr-modal");
+                    const qrCodeImg = document.getElementById("qr-code-img");
+
+                    // Verifica se a API retornou o código do Pix
+                    if (data.pixQrCode) {
+                        // Gera o QR Code dinamicamente usando qrious.js
+                        const qr = new QRious({
+                            element: qrCodeImg, // Renderiza diretamente na tag <canvas>
+                            value: data.pixQrCode, // Código Pix retornado pela API
+                            size: 300 // Tamanho do QR Code
+                        });
+                        qrModal.style.display = "flex"; // Mostra o modal
+                    } else if (data.invoiceUrl) {
+                        // Se não há QR Code, mostra o link da fatura
+                        window.open(data.invoiceUrl, "_blank");
+                        alert("O QR Code não foi gerado pela API. Abrindo o link da fatura.");
+                    } else {
+                        alert("Erro: O QR Code e o link da fatura não foram gerados.");
+                    }
+
+
+                    qrModal.style.display = "flex"; // Mostra o modal
+                } else {
+                    alert("Erro: " + data.error);
+                }
+            } catch (error) {
+                console.error("Erro ao processar o pagamento:", error);
+                alert("Erro ao processar o pagamento. Verifique os logs.");
+            } finally {
+                // Restaura o texto do botão ao finalizar o processo
+                button.innerHTML = '<i class="fas fa-shopping-cart"></i> Comprar';
+            }
+        });
+    });
+});
+
+
+
+
+</script>
+<script>
+    document.getElementById('update-profile-form').addEventListener('submit', function (event) {
+        const cpfInput = document.getElementById('profile-cpf');
+        const cpf = cpfInput.value;
+
+        // Valida o formato do CPF (000.000.000-00)
+        const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+        if (!cpfRegex.test(cpf)) {
+            event.preventDefault();
+            alert("Por favor, insira um CPF válido no formato 000.000.000-00.");
+            return;
+        }
+    });
+</script>
+
+
+
+</body>
+</html>

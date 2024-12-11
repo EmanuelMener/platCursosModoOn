@@ -1,0 +1,22 @@
+<div class="course-list">
+  {% for curso in cursos %}
+  <div class="course-item">
+    <h3>{{ curso.nome }}</h3>
+    <p>{{ curso.descricao }}</p>
+    {% if curso.id in cliente_cursos_ids %}
+      {% for cliente_curso in cliente_cursos %}
+        {% if cliente_curso.curso.id == curso.id %}
+          {% if cliente_curso.tipo_aquisicao == 'ganhado' %}
+            <span class="tag ganhado">Ganhado</span>
+          {% elif cliente_curso.tipo_aquisicao == 'comprado' %}
+            <span class="tag comprado">Comprado</span>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <span class="price">R$ {{ curso.preco }}</span>
+      <a href="{% url 'comprar_curso' curso.id %}" class="btn btn-buy">Compre aqui</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>

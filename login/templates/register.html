@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar</title>
+    <link rel="stylesheet" href="{% static 'login/css/login.css' %}">
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-form">
+            <h1>Criar Conta</h1>
+            <form method="post">
+                {% csrf_token %}
+                <label for="username">Nome de Usuário</label>
+                <input type="text" id="username" name="username" placeholder="Digite seu nome de usuário" required>
+
+                <label for="password1">Senha</label>
+                <input type="password" id="password1" name="password1" placeholder="Digite sua senha" required>
+
+                <label for="password2">Confirmar Senha</label>
+                <input type="password" id="password2" name="password2" placeholder="Confirme sua senha" required>
+
+                <button type="submit" class="btn">Registrar</button>
+            </form>
+            {% if form.errors %}
+                <ul class="error-list">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <a href="{% url 'login' %}" class="back-to-login">Já possui uma conta? Faça login</a>
+        </div>
+        <div class="register-image">
+            <img src="{% static 'login/images/login-image.png' %}" alt="Imagem de Login">
+        </div>
+    </div>
+</body>
+</html>
